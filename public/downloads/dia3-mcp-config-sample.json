@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "./data",
+        "./projects"
+      ],
+      "env": {},
+      "description": "Permite al agente leer, crear y editar archivos de datos locales directamente como herramientas del protocolo MCP."
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "./data/empresa_local.db"
+      ],
+      "env": {},
+      "description": "Otorga superpoderes al agente para inspeccionar esquemas, ejecutar SELECTs y responder preguntas de negocio en lenguaje natural."
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "description": "Permite al agente consultar documentación web y APIs externas públicas sin requerir scraping manual."
+    },
+    "firebase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@firebase/mcp-server",
+        "--project",
+        "demo-curso-ia-2026"
+      ],
+      "description": "MCP prehecho de Firebase para interactuar con Firestore y Authentication."
+    }
+  }
+}

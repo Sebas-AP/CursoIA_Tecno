@@ -1,0 +1,73 @@
+{
+  "_metadata": {
+    "version": "1.0",
+    "description": "Dataset de prueba para RAG Local. La IA debe responder consultas basándose exclusivamente en este contexto.",
+    "company": "CyberTech Store AI"
+  },
+  "products": [
+    {
+      "id": "PROD-101",
+      "name": "Laptop Titan AI Pro 16",
+      "category": "Hardware / Laptops",
+      "priceUSD": 2199.00,
+      "stock": 14,
+      "specs": {
+        "cpu": "Intel Core Ultra 9 185H",
+        "npu": "Intel AI Boost (34 TOPS)",
+        "ram": "32GB LPDDR5X",
+        "storage": "2TB NVMe PCIe 4.0",
+        "os": "Ubuntu Linux 24.04 LTS Preinstalado"
+      },
+      "compatibility": ["Cursor AI", "Ollama Local", "Docker Dev Containers"],
+      "warrantyYears": 3
+    },
+    {
+      "id": "PROD-102",
+      "name": "Teclado Mecánico Quantum Split",
+      "category": "Periféricos",
+      "priceUSD": 249.00,
+      "stock": 35,
+      "specs": {
+        "switches": "Gateron Oil King Lubed",
+        "layout": "Ergonómico Split Ortholinear",
+        "connectivity": ["Bluetooth 5.3", "2.4GHz Dongle", "USB-C"],
+        "batteryHours": 180
+      },
+      "warrantyYears": 2
+    },
+    {
+      "id": "PROD-103",
+      "name": "Neural Gateway Edge NPU Box",
+      "category": "Dispositivos de Inferencia Local",
+      "priceUSD": 699.00,
+      "stock": 8,
+      "specs": {
+        "inferenceSpeed": "128 TOPS INT8",
+        "supportedFormats": ["GGUF", "ONNX", "TensorRT-LLM"],
+        "maxModelParams": "14B cuantizado a 4-bit",
+        "powerWattage": 45
+      },
+      "warrantyYears": 1
+    }
+  ],
+  "policies": {
+    "shipping": {
+      "freeShippingThresholdUSD": 150.00,
+      "deliveryDaysDomestic": "2 a 4 días hábiles",
+      "internationalShipping": "Disponible para México, Colombia, Chile y España con costo adicional de $35 USD"
+    },
+    "returns": {
+      "windowDays": 30,
+      "condition": "El producto debe devolverse en su empaque original sin sellos violados.",
+      "exceptions": "Los dispositivos NPU (PROD-103) tienen una tasa de reabastecimiento del 10% si se abrieron."
+    },
+    "discounts": [
+      {
+        "code": "CURSOIA2026",
+        "percentage": 15,
+        "validCategories": ["Hardware / Laptops", "Periféricos"],
+        "minPurchaseUSD": 200.00
+      }
+    ]
+  }
+}
