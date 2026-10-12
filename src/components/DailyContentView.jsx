@@ -84,7 +84,7 @@ export const DailyContentView = ({ activeDay, setActiveDay, showToast }) => {
 
   const isDay1 = activeDay === 1;
   const isDay3 = activeDay === 3;
-  const isCanvaPending = isDay1 && dayData.presentation.status === 'en_preparacion';
+  const isCanvaLive = !!dayData.presentation.embedUrl;
 
   return (
     <div className="daily-content-section">
@@ -129,12 +129,12 @@ export const DailyContentView = ({ activeDay, setActiveDay, showToast }) => {
           <div className="presentation-banner">
             <div className="presentation-info">
               <div className="presentation-icon-box">
-                {isDay1 ? <Palette size={24} color="#00f0ff" /> : <Presentation size={24} />}
+                {isCanvaLive ? <Palette size={24} color="#00f0ff" /> : <Presentation size={24} />}
               </div>
               <div className="presentation-text">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h4>{dayData.presentation.title}</h4>
-                  {isDay1 && (
+                  {isCanvaLive && (
                     <span style={{ 
                       fontSize: '11px', 
                       background: 'rgba(0, 240, 255, 0.15)', 
@@ -149,7 +149,7 @@ export const DailyContentView = ({ activeDay, setActiveDay, showToast }) => {
                   )}
                 </div>
                 <p>
-                  {isDay1 
+                  {isCanvaLive 
                     ? "Presentación interactiva en Canva por Sebastián Almeda e Iván Valles. Haz clic en 'Ver Diapositivas' para interactuar con ellas o en 'Abrir en Canva'." 
                     : "Diapositivas interactivas con diagramas conceptuales, arquitectura y guías paso a paso."}
                 </p>
@@ -167,7 +167,7 @@ export const DailyContentView = ({ activeDay, setActiveDay, showToast }) => {
                 rel="noopener noreferrer" 
                 className="btn btn-secondary"
               >
-                <span>{isDay1 ? 'Abrir en Canva' : 'Enlace Directo'}</span>
+                <span>{isCanvaLive ? 'Abrir en Canva' : 'Enlace Directo'}</span>
                 <ExternalLink size={14} />
               </a>
             </div>
