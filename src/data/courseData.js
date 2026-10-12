@@ -141,21 +141,21 @@ export const COURSE_DAYS = [
   {
     id: 2,
     dayNumber: "02",
-    title: "RAG y Subagentes",
-    focus: "Conceptos fundamentales y arquitectura RAG, implementación de RAG básico con archivos locales, y orquestación de subagentes especializados con TDD y especificaciones Markdown.",
-    pedagogyPillar: "Enfoque pragmático de RAG con archivos JSON y documentos locales: la IA como un estudiante con 'libro abierto' para grounding total sin perder tiempo en configuraciones matemáticas pesadas de bases vectoriales.",
+    title: "RAG y Subagentes de Código",
+    focus: "Conceptos fundamentales de RAG (Recuperar, Aumentar, Generar), arquitectura y flujo de datos de un sistema RAG, implementación práctica con base vectorial (ChromaDB), y arquitectura multiagente: subagentes con contexto limpio, permisos mínimos y retorno ejecutivo, configurados en archivos Markdown y orquestados con flujo TDD.",
+    pedagogyPillar: "RAG es darle a la IA un 'examen a libro abierto' con tus propios archivos: primero recupera datos reales y luego genera sin adivinar. El trabajo complejo se delega a subagentes especialistas con memoria aislada y criterios de éxito verificables mediante pruebas (TDD).",
     schedule: [
       {
         time: "09:00 - 10:15",
         duration: "1 hr 15 min",
-        topic: "Conceptos Fundamentales de RAG y Arquitectura de un Sistema RAG",
-        description: "¿Qué es Retrieval-Augmented Generation? Arquitectura cliente-recuperador-generador. La IA con 'libro abierto' para erradicar alucinaciones en código y especificaciones técnicas."
+        topic: "Conceptos Fundamentales de RAG: ¿Qué es y por qué lo necesitamos?",
+        description: "Retrieval-Augmented Generation: la IA con 'examen a libro abierto'. Los 3 pasos (Recuperar, Aumentar, Generar) y la comparación LLM aislado vs. sistema con RAG: recuperación activa, código verificado y cero reentrenamiento."
       },
       {
         time: "10:15 - 11:00",
         duration: "45 min",
-        topic: "Implementación de un RAG Básico y Aplicaciones Prácticas",
-        description: "Construcción práctica de un flujo RAG local conectado a carpetas de documentos y datasets JSON. Grounding estricto y respuestas basadas exclusivamente en fuentes."
+        topic: "Arquitectura de un Sistema RAG e Implementación de un RAG Básico",
+        description: "Flujo de datos completo y código en vivo: base vectorial con ChromaDB, consulta semántica que conecta 'login' con 'JWT/auth', y generación con contexto. Casos de uso en ingeniería: documentación viva, entender proyectos nuevos y diagnóstico de bugs."
       },
       {
         time: "11:00 - 11:30",
@@ -166,21 +166,22 @@ export const COURSE_DAYS = [
       {
         time: "11:30 - 12:45",
         duration: "1 hr 15 min",
-        topic: "Conceptos y Funcionamiento de los Subagentes: Delegación y Especialización",
-        description: "División de responsabilidades complejas en ingeniería de software. Agentes coordinadores y agentes especialistas para pruebas, documentación y lógica."
+        topic: "Subagentes de Código: Contexto Limpio, Permisos Mínimos y Retorno Ejecutivo",
+        description: "¿Qué es un subagente y dónde 'vive'? Sus 3 piezas: identidad (system prompt), herramientas (tools) y memoria aislada. Configuración práctica en .claude/agents/ con archivos Markdown: CLAUDE.md, name, description, tools y cuerpo del prompt."
       },
       {
         time: "12:45 - 15:00",
         duration: "2 hrs 15 min",
-        topic: "Subagentes con TDD, Archivos Markdown & Implementación en un Proyecto",
-        description: "Taller práctico: especificaciones técnicas vivas en archivos Markdown y flujo guiado por pruebas (TDD), donde un subagente redacta los tests y otro escribe el código de producción."
+        topic: "Delegación, Especialización y Subagentes con Flujo TDD",
+        description: "Carrera de relevos de 4 pasos y ciclo TDD en vivo de rojo a verde (@tdd-tester, @backend-coder, @revisor). Triangulación con múltiples asserts para evitar las trampas de la IA (Reward Hacking), orquestación en un proyecto real y demo en terminal con > /agents."
       }
     ],
     presentation: {
-      url: "https://docs.google.com/presentation/d/e/2PACX-1vSamplePresDay2/pub?start=false",
-      title: "Slides Día 2: RAG Local y Orquestación con Subagentes",
+      url: "https://canva.link/53o6kjom0m0wm67",
+      embedUrl: "https://www.canva.com/design/DAHW3ymeH64/4248vChW_LTD1k7P-EusZw/view?embed",
+      title: "Slides Día 2: RAG y Subagentes de Código (Canva Oficial)",
       status: "disponible",
-      embedPlaceholder: "Presentación Día 2: Grounding con RAG sobre datos JSON locales, erradicación de alucinaciones y desarrollo guiado por pruebas (TDD) orquestado por subagentes especializados."
+      embedPlaceholder: "Presentación oficial interactiva en Canva diseñada por Sebastián Almeda e Iván Valles. Cubre los conceptos fundamentales de RAG (examen a libro abierto), la arquitectura e implementación de un RAG básico con ChromaDB, la anatomía de un subagente (contexto limpio, permisos mínimos, retorno ejecutivo), su configuración en .claude/agents/ con Markdown y el ciclo TDD de rojo a verde con triangulación."
     },
     resources: [
       {
@@ -213,36 +214,36 @@ export const COURSE_DAYS = [
     ],
     challenge: {
       id: "reto-dia-2",
-      title: "Reto del Día 2: Asistente RAG con Grounding Estricto + Flujo TDD",
-      mission: "Configurar en tu workspace la carpeta de datos locales (`dia2-dataset-tienda-local.json`) y crear un flujo donde: 1) El agente responda consultas complejas citando exactamente el ID y campos del JSON sin inventar datos; 2) Orquestar un flujo TDD donde crees primero el archivo de especificación en Markdown y un subagente genere los tests antes de escribir la lógica.",
+      title: "Reto del Día 2: Subagentes en Markdown validados con TDD",
+      mission: "Configura dos subagentes en Markdown (Tester + Coder) dentro de tu proyecto para construir un módulo validado con TDD sobre documentación local: el agente líder extrae primero el contexto real de tus archivos (RAG), luego @tdd-tester escribe los tests antes de que exista el código y @backend-coder implementa la lógica mínima hasta pasarlos, usando triangulación con múltiples asserts.",
       acceptanceCriteria: [
-        "Configurar el prompt de contexto para que el agente admita 'No dispongo de esa información' si un dato no está en el JSON.",
-        "Consultar exitosamente al menos 3 preguntas de compatibilidad técnica que requieran cruzar dos objetos del JSON.",
-        "Crear el archivo `feature-spec.md` con los requerimientos de una nueva función de descuento.",
-        "Hacer que el subagente escriba los tests unitarios antes de que exista el código.",
-        "Hacer que el segundo agente implemente la lógica hasta lograr 100% de tests en verde."
+        "Crear la carpeta .claude/agents/ con los archivos .md de cada subagente (name, description, tools y cuerpo del prompt con su misión y retorno ejecutivo).",
+        "Definir permisos mínimos: @tdd-tester y @backend-coder solo con las herramientas que necesitan (Read, Write, Bash para correr pruebas).",
+        "Lograr la Fase Roja: @tdd-tester escribe el test antes de que exista la función (pytest FAILED esperado).",
+        "Lograr la Fase Verde: @backend-coder lee el error y programa el código mínimo hasta obtener 100% de tests en verde.",
+        "Aplicar triangulación: acorralar al agente con al menos 3 asserts distintos para obligarlo a programar la lógica real y no hacer trampa (Reward Hacking)."
       ],
-      proTip: "Recuerda la analogía del estudiante con libro abierto: la IA no debe memorizar tu inventario en sus parámetros, debe leer directamente tus archivos locales en cada consulta."
+      proTip: "Si pones una sola prueba, el agente puede 'hacer trampa' (Reward Hacking) pasando el test con una fórmula falsa. Acórralo con múltiples asserts: es la única forma de obligarlo a programar la lógica real."
     }
   },
   {
     id: 3,
     dayNumber: "03",
-    title: "MCP y Proyecto Final",
-    focus: "Introducción, arquitectura y configuración del Model Context Protocol (MCP), integración de MCP con agentes de código, RAG y subagentes, y desarrollo del proyecto final colaborativo por equipos.",
-    pedagogyPillar: "Uso de MCPs prehechos (Firebase, SQLite, Filesystem) configurados en mcp.json para dotar al agente de superpoderes inmediatos en lenguaje natural sin enredarse en la creación de servidores desde cero.",
+    title: "MCPs y Proyecto Final",
+    focus: "El Model Context Protocol (MCP) como estándar abierto para conectar aplicaciones de IA con fuentes de datos y herramientas externas de forma segura y estandarizada: sus 3 capacidades (Tools, Recursos, Prompts), su arquitectura cliente-servidor (Host, Cliente, Servidor), ejemplos reales (Playwright, GitHub, Supabase), instalación de un MCP y desarrollo del proyecto final por equipos.",
+    pedagogyPillar: "El agente deja de estar aislado: mediante MCPs prehechos instalados en tu editor, el agente se conecta de forma estandarizada a navegadores, repositorios y bases de datos, y todo lo aprendido en el curso converge en un proyecto final de tema libre desarrollado en equipo.",
     schedule: [
       {
         time: "09:00 - 10:00",
         duration: "1 hr",
-        topic: "Introducción al Model Context Protocol (MCP): Arquitectura, Tools, Resources y Prompts",
-        description: "¿Qué es el estándar MCP y por qué revoluciona la IA? Explicación detallada de la arquitectura cliente-servidor, Tools (herramientas ejecutables), Resources (fuentes de datos) y Prompts preconfigurados."
+        topic: "¿Qué es el Model Context Protocol (MCP)? Definición y 3 Capacidades Principales",
+        description: "Estándar abierto creado para conectar aplicaciones de inteligencia artificial con fuentes de datos y herramientas externas de forma segura y estandarizada. Sus 3 capacidades: Tools (funciones que puede necesitar el LLM), Recursos (datos o archivos contextuales) y Prompts (plantillas predefinidas)."
       },
       {
         time: "10:00 - 11:00",
         duration: "1 hr",
-        topic: "Instalación, Configuración de un MCP & Integración con Agentes de Código",
-        description: "Configuración práctica en archivos mcp.json. Conexión de servidores MCP prehechos (SQLite, Filesystem, Fetch) a tu agente de desarrollo para interactuar con bases de datos en lenguaje natural."
+        topic: "Arquitectura Cliente-Servidor, Ejemplos de MCP e Instalación Práctica",
+        description: "Los 3 componentes: Host (entorno de IA del usuario), Cliente (intermediario que gestiona solicitudes y sesiones) y Servidor (programa independiente conectado a fuentes de datos). Ejemplos en vivo: Playwright MCP (abrir e interactuar con sitios web y probar web apps), GitHub MCP (analizar repositorios y automatizar flujos) y Supabase MCP (gestión de bases de datos con IA, crear y desplegar la BD automáticamente). Instalación paso a paso de un MCP."
       },
       {
         time: "11:00 - 11:30",
@@ -253,27 +254,28 @@ export const COURSE_DAYS = [
       {
         time: "11:30 - 12:15",
         duration: "45 min",
-        topic: "Integración de RAG, Subagentes y MCP & Kickoff del Proyecto Final",
-        description: "Cómo convergen las tres tecnologías en una arquitectura robusta. Sorteo y formación de equipos con la ruleta interactiva de la web, asignación de retos reales y entrega de boilerplates."
+        topic: "Kickoff del Proyecto Final: Descripción y Formación de Equipos",
+        description: "En equipos desarrollarán un proyecto en el que hagan uso de todo lo aprendido en el curso (agentes de código, prompts, RAG, subagentes con TDD y MCPs). El tema es libre. Para la entrega deberán subir el enlace de su repositorio de GitHub y de su sitio web desplegado."
       },
       {
         time: "12:15 - 14:30",
         duration: "2 hrs 15 min",
-        topic: "Desarrollo del Proyecto Final por Equipos (Hackathon)",
-        description: "Trabajo en equipo en el workspace utilizando plantillas base para construir la solución aumentada con IA. Mentoría técnica y acompañamiento continuo de los docentes."
+        topic: "Desarrollo del Proyecto Final por Equipos",
+        description: "Trabajo en equipo en el workspace para construir la solución aumentada con IA aplicando las técnicas del curso. Mentoría técnica y acompañamiento continuo de los docentes."
       },
       {
         time: "14:30 - 15:00",
         duration: "30 min",
-        topic: "Presentación y Demostración de Proyectos (Pitch Exprés 3 min)",
-        description: "Demostraciones en vivo de 3 minutos por equipo ante el grupo: problema, solución aumentada con IA en funcionamiento real, evaluación y conclusiones finales del curso."
+        topic: "Entrega y Presentación de Proyectos",
+        description: "Cada equipo entrega el enlace de su repositorio de GitHub y de su sitio web desplegado, y presenta su proyecto final ante el grupo. Evaluación y conclusiones del curso."
       }
     ],
     presentation: {
-      url: "https://docs.google.com/presentation/d/e/2PACX-1vSamplePresDay3/pub?start=false",
-      title: "Slides Día 3: Arquitectura MCP y Kickoff del Hackathon",
+      url: "https://canva.link/yuzhox0kbsql8ny",
+      embedUrl: "https://www.canva.com/design/DAHWsZhX8ws/_H1SwJvc49GclvG81E1YUw/view?embed",
+      title: "Slides Día 3: MCPs y Proyecto Final (Canva Oficial)",
       status: "disponible",
-      embedPlaceholder: "Presentación Día 3: Anatomía del Model Context Protocol (MCP), configuración de servidores en mcp.json, integración con bases de datos y pautas de evaluación del Proyecto Final."
+      embedPlaceholder: "Presentación oficial interactiva en Canva diseñada por Sebastián Almeda e Iván Valles. Cubre la definición del Model Context Protocol (MCP), sus 3 capacidades (Tools, Recursos, Prompts), la arquitectura cliente-servidor (Host, Cliente, Servidor), ejemplos de MCPs (Playwright, GitHub, Supabase), la instalación de un MCP y la descripción del proyecto final por equipos."
     },
     resources: [
       {
@@ -315,16 +317,16 @@ export const COURSE_DAYS = [
     ],
     challenge: {
       id: "reto-dia-3",
-      title: "Reto Cumbre: Proyecto Final & Demostración de Pitch Exprés",
-      mission: "En tu equipo asignado, construir una solución funcional que resuelva el problema del mundo real sorteado en la plataforma. La solución debe incorporar al menos una técnica clave del curso (RAG local con JSONs/Docs, orquestación de subagentes TDD, o integración con un servidor MCP) y estar lista para un demo en vivo de 3 minutos.",
+      title: "Reto Cumbre: Proyecto Final por Equipos",
+      mission: "En equipos deberán desarrollar un proyecto en el que hagan uso de lo que aprendieron en este curso (agentes de código, prompts estructurados, RAG, subagentes con TDD y MCPs). El tema es libre. Para la entrega tienen que subir el enlace de su repositorio de GitHub y de su sitio web desplegado.",
       acceptanceCriteria: [
-        "Definir con claridad el problema y cómo la IA aporta valor real (no sólo como un chatbot genérico).",
-        "Implementar la solución usando el boilerplate provisto o el entorno configurado.",
-        "Demostrar grounding estricto o conexión mediante MCP / herramientas.",
-        "Preparar presentación de 3 minutos: 1 min problema y arquitectura, 1.5 min demo en vivo, 0.5 min conclusiones.",
-        "Entregar enlace al repositorio público en GitHub con los commits del equipo."
+        "Definir en equipo el tema del proyecto (tema libre) y el problema que resuelve.",
+        "Aplicar las técnicas aprendidas en el curso: agentes de código, prompts, RAG, subagentes con TDD y/o MCPs.",
+        "Construir una solución funcional en el workspace durante la sesión de desarrollo.",
+        "Entregar el enlace del repositorio de GitHub con los commits del equipo.",
+        "Entregar el enlace del sitio web desplegado y funcionando."
       ],
-      proTip: "Enfóquense en un flujo pequeño pero 100% funcional. Una demo en vivo que responde con precisión a partir de datos locales o herramientas impresiona 10 veces más que un proyecto gigantesco a medio terminar."
+      proTip: "Enfóquense en un flujo pequeño pero 100% funcional. Un sitio desplegado que responde con precisión a partir de datos locales o herramientas MCP impresiona 10 veces más que un proyecto gigantesco a medio terminar."
     }
   }
 ];
