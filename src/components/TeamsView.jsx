@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PROJECT_CATEGORIES } from '../data/categoriesData';
-import { 
-  Users, 
-  Sparkles, 
-  Copy, 
-  RotateCcw, 
-  Check, 
-  Layers, 
-  Activity, 
-  ShieldAlert, 
-  GraduationCap, 
-  Terminal, 
-  Lock, 
-  ShoppingBag, 
-  Building2, 
-  Truck,
-  ExternalLink,
+import {
+  Users,
+  Copy,
   Globe,
   Plus,
   Edit3,
@@ -23,13 +9,26 @@ import {
   Search,
   CheckCircle2,
   Code2,
-  Send,
   Dices,
   Shuffle,
-  Eye,
   Share2,
-  Filter
+  Lock,
+  LogOut,
+  KeyRound,
+  Send,
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
+import { isSupabaseConfigured } from '../lib/supabaseClient';
+import {
+  fetchTeams,
+  verifyInstructorPin,
+  createTeams,
+  deleteTeam,
+  getTeamByCode,
+  submitProject,
+  instructorUpdateTeam
+} from '../lib/teamsApi';
 
 const GithubIcon = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,277 +36,271 @@ const GithubIcon = ({ size = 18, color = "currentColor" }) => (
   </svg>
 );
 
-const INITIAL_PROJECTS = [
-  {
-    id: "proj-1",
-    projectName: "MedGuard: Triaje Clínico & Grounding RAG",
-    teamName: "Equipo 01 - CyberCore",
-    members: ["Carlos Mendoza", "Sofía Valenzuela", "Diego Navarro"],
-    category: "HealthTech",
-    categoryColor: "#06b6d4",
-    description: "Asistente médico con RAG estricto sobre expedientes clínicos en JSON locales. Diagnósticos diferenciales con citas directas al historial y cero alucinaciones.",
-    githubUrl: "https://github.com/curso-ia-tecno/medguard-rag",
-    demoUrl: "https://medguard-rag-demo.vercel.app",
-    aiStack: "RAG Local con JSONs + Subagente Validador",
-    status: "publicado",
-    createdAt: "2026-09-29"
-  },
-  {
-    id: "proj-2",
-    projectName: "AuditPulse: Auditor Financiero con SQLite MCP",
-    teamName: "Equipo 02 - Nexus AI",
-    members: ["Mariana Herrera", "Mateo Castillo", "Valentina Rojas"],
-    category: "FinTech",
-    categoryColor: "#10b981",
-    description: "Agente de análisis financiero conectado en tiempo real a SQLite vía Model Context Protocol (MCP). Consultas en lenguaje natural y detección de anomalías contables.",
-    githubUrl: "https://github.com/curso-ia-tecno/auditpulse-mcp",
-    demoUrl: "https://auditpulse-preview.netlify.app",
-    aiStack: "Model Context Protocol (SQLite MCP) + Consultas NLP",
-    status: "publicado",
-    createdAt: "2026-09-29"
-  },
-  {
-    id: "proj-3",
-    projectName: "CodeMentor: Tutor de Código con Subagentes TDD",
-    teamName: "Equipo 03 - AgentForge",
-    members: ["Sebastián Paredes", "Camila Domínguez", "Lucía Guzmán"],
-    category: "EdTech",
-    categoryColor: "#8b5cf6",
-    description: "Orquestación multi-agente guiada por pruebas: el Subagente Mentor genera especificaciones y tests unitarios en Markdown, mientras el Builder guía al estudiante.",
-    githubUrl: "https://github.com/curso-ia-tecno/codementor-tdd",
-    demoUrl: "https://codementor-tdd.vercel.app",
-    aiStack: "Subagentes Orquestados + Paradigma TDD con Markdown",
-    status: "publicado",
-    createdAt: "2026-09-29"
-  },
-  {
-    id: "proj-4",
-    projectName: "LogSentinel: Diagnóstico de Errores & DevOps Autónomo",
-    teamName: "Equipo 04 - NeuralPulse",
-    members: ["Andrés Figueroa", "Elena Beltrán", "Gabriel Cárdenas"],
-    category: "DevOps",
-    categoryColor: "#f59e0b",
-    description: "Analizador de logs con RAG sobre registros JSON y parches automáticos generados mediante agentes de código con directrices de workspace.",
-    githubUrl: "https://github.com/curso-ia-tecno/logsentinel-devops",
-    demoUrl: "https://logsentinel-app.vercel.app",
-    aiStack: "RAG Local sobre Logs + Generación Asistida de Parches",
-    status: "publicado",
-    createdAt: "2026-09-29"
+// Utilidad para mezclar un array
+const shuffleArray = (array) => {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-];
+  return arr;
+};
 
-const DEMO_STUDENTS = [
-  "Alejandro Morales",
-  "Sofía Valenzuela",
-  "Carlos Mendoza",
-  "Mariana Herrera",
-  "Diego Navarro",
-  "Valentina Rojas",
-  "Mateo Castillo",
-  "Camila Domínguez",
-  "Sebastián Paredes",
-  "Lucía Guzmán",
-  "Andrés Figueroa",
-  "Elena Beltrán",
-  "Gabriel Cárdenas",
-  "Valeria Fuentes",
-  "Joaquín Silva",
-  "Natalia Ortiz"
-];
-
-const TEAM_CYBER_NAMES = [
-  "Nexus AI", "CyberCore", "Vector Minds", "AgentForge",
-  "Quantum Synapse", "HyperContext", "Neural Pulse", "ZeroHallucination"
-];
+const normalizeMembers = (members) => {
+  if (Array.isArray(members)) return members;
+  try {
+    const parsed = JSON.parse(members);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 export const TeamsView = ({ showToast }) => {
-  // Pestaña activa: 'gallery' (Galería de proyectos) | 'submit' (Crear/Editar) | 'roulette' (Sorteo)
+  // 'gallery' | 'submit' | 'roulette'
   const [subView, setSubView] = useState('gallery');
 
-  // Lista de proyectos publicados
-  const [projects, setProjects] = useState([]);
+  // Datos
+  const [teams, setTeams] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  // Búsqueda y filtrado en galería
+  // Rol instructor (persistido en sessionStorage)
+  const [isInstructor, setIsInstructor] = useState(
+    () => sessionStorage.getItem('teams_is_instructor') === 'true'
+  );
+  const [instructorPin, setInstructorPin] = useState(
+    () => sessionStorage.getItem('teams_instructor_pin') || ''
+  );
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [isVerifyingPin, setIsVerifyingPin] = useState(false);
+
+  // Búsqueda en galería
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
 
-  // Estado del formulario de creación/edición
-  const [editingProjectId, setEditingProjectId] = useState(null);
+  // Estado del formulario de proyecto (estudiantes o instructor editando)
+  const [teamCodeInput, setTeamCodeInput] = useState('');
+  const [validatedTeam, setValidatedTeam] = useState(null);
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  const [editingTeamId, setEditingTeamId] = useState(null); // solo instructor
   const [formProjectName, setFormProjectName] = useState('');
-  const [formTeamName, setFormTeamName] = useState('');
-  const [formMembers, setFormMembers] = useState('');
-  const [formCategory, setFormCategory] = useState(PROJECT_CATEGORIES[0]?.name.split(':')[0] || 'HealthTech');
-  const [formAiStack, setFormAiStack] = useState('RAG Local con JSONs + Subagentes');
-  const [formGithubUrl, setFormGithubUrl] = useState('');
-  const [formDemoUrl, setFormDemoUrl] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formStatus, setFormStatus] = useState('publicado');
+  const [formRepoUrl, setFormRepoUrl] = useState('');
+  const [formDemoUrl, setFormDemoUrl] = useState('');
+  const [formStatus, setFormStatus] = useState('en_desarrollo');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Estado para la ruleta auxiliar de equipos (docente)
+  // Ruleta (instructor)
   const [studentsInput, setStudentsInput] = useState('');
   const [teamSize, setTeamSize] = useState(3);
   const [isGenerating, setIsGenerating] = useState(false);
   const [rouletteTeams, setRouletteTeams] = useState([]);
+  const [createdTeams, setCreatedTeams] = useState([]);
+  const [isCreatingTeams, setIsCreatingTeams] = useState(false);
 
-  // Cargar proyectos de localStorage al inicio
-  useEffect(() => {
-    const saved = localStorage.getItem('course_published_projects');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProjects(parsed);
-          return;
-        }
-      } catch (e) {
-        console.error(e);
-      }
+  // Cargar equipos
+  const loadTeams = async () => {
+    if (!isSupabaseConfigured) {
+      setIsLoading(false);
+      setLoadError('missing-config');
+      return;
     }
-    // Si no hay datos previos, cargar los iniciales
-    setProjects(INITIAL_PROJECTS);
-    localStorage.setItem('course_published_projects', JSON.stringify(INITIAL_PROJECTS));
+    try {
+      setIsLoading(true);
+      const data = await fetchTeams();
+      setTeams(data);
+      setLoadError(null);
+    } catch (e) {
+      console.error(e);
+      setLoadError('fetch-error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTeams();
   }, []);
 
-  // Guardar en localStorage cada vez que cambien los proyectos
-  const saveProjects = (newProjects) => {
-    setProjects(newProjects);
-    localStorage.setItem('course_published_projects', JSON.stringify(newProjects));
+  // ---------- Autenticación instructor ----------
+  const handleVerifyPin = async (e) => {
+    e.preventDefault();
+    if (!pinInput.trim()) return;
+    try {
+      setIsVerifyingPin(true);
+      const ok = await verifyInstructorPin(pinInput.trim());
+      if (ok) {
+        setIsInstructor(true);
+        setInstructorPin(pinInput.trim());
+        sessionStorage.setItem('teams_is_instructor', 'true');
+        sessionStorage.setItem('teams_instructor_pin', pinInput.trim());
+        setShowPinModal(false);
+        setPinInput('');
+        showToast('¡Bienvenido, instructor!');
+      } else {
+        showToast('PIN incorrecto');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al verificar el PIN');
+    } finally {
+      setIsVerifyingPin(false);
+    }
   };
 
-  // Abrir formulario para crear nuevo proyecto
-  const handleOpenCreateForm = () => {
-    setEditingProjectId(null);
+  const handleInstructorLogout = () => {
+    setIsInstructor(false);
+    setInstructorPin('');
+    sessionStorage.removeItem('teams_is_instructor');
+    sessionStorage.removeItem('teams_instructor_pin');
+    if (subView === 'roulette') setSubView('gallery');
+    showToast('Sesión de instructor cerrada');
+  };
+
+  // ---------- Formulario de proyecto ----------
+  const resetForm = () => {
+    setTeamCodeInput('');
+    setValidatedTeam(null);
+    setEditingTeamId(null);
     setFormProjectName('');
-    setFormTeamName(`Equipo 0${projects.length + 1} - CyberCore`);
-    setFormMembers('');
-    setFormCategory('HealthTech');
-    setFormAiStack('RAG Local con JSONs + Subagentes');
-    setFormGithubUrl('');
-    setFormDemoUrl('');
     setFormDescription('');
-    setFormStatus('publicado');
+    setFormRepoUrl('');
+    setFormDemoUrl('');
+    setFormStatus('en_desarrollo');
+  };
+
+  const handleOpenSubmit = () => {
+    resetForm();
     setSubView('submit');
   };
 
-  // Abrir formulario para editar proyecto existente
-  const handleOpenEditForm = (proj) => {
-    setEditingProjectId(proj.id);
-    setFormProjectName(proj.projectName);
-    setFormTeamName(proj.teamName);
-    setFormMembers(proj.members.join(', '));
-    setFormCategory(proj.category);
-    setFormAiStack(proj.aiStack || '');
-    setFormGithubUrl(proj.githubUrl || '');
-    setFormDemoUrl(proj.demoUrl || '');
-    setFormDescription(proj.description || '');
-    setFormStatus(proj.status || 'publicado');
+  // Validar código de equipo (estudiantes)
+  const handleValidateCode = async (e) => {
+    e.preventDefault();
+    if (!teamCodeInput.trim()) {
+      showToast('Ingresa el código de tu equipo');
+      return;
+    }
+    try {
+      setIsCheckingCode(true);
+      const team = await getTeamByCode(teamCodeInput.trim());
+      if (!team) {
+        showToast('Código no válido. Revisa con tu instructor.');
+        return;
+      }
+      setValidatedTeam(team);
+      // Precargar datos existentes del proyecto
+      const full = teams.find(t => t.id === team.id);
+      if (full) {
+        setFormProjectName(full.project_name || '');
+        setFormDescription(full.description || '');
+        setFormRepoUrl(full.repo_url || '');
+        setFormDemoUrl(full.demo_url || '');
+        setFormStatus(full.status === 'sin_entregar' ? 'en_desarrollo' : full.status);
+      }
+      showToast(`Código válido: ${team.name}`);
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al validar el código');
+    } finally {
+      setIsCheckingCode(false);
+    }
+  };
+
+  // Editar (instructor)
+  const handleOpenEditForm = (team) => {
+    setEditingTeamId(team.id);
+    setValidatedTeam({ id: team.id, name: team.name, members: normalizeMembers(team.members) });
+    setFormProjectName(team.project_name || '');
+    setFormDescription(team.description || '');
+    setFormRepoUrl(team.repo_url || '');
+    setFormDemoUrl(team.demo_url || '');
+    setFormStatus(team.status === 'sin_entregar' ? 'en_desarrollo' : team.status);
     setSubView('submit');
   };
 
-  // Guardar envío del formulario
-  const handleSaveProject = (e) => {
+  const handleSaveProject = async (e) => {
     e.preventDefault();
 
     if (!formProjectName.trim()) {
-      showToast('Por favor escribe el nombre de tu proyecto');
+      showToast('Escribe el nombre del proyecto');
+      return;
+    }
+    if (!formDescription.trim()) {
+      showToast('Escribe la descripción del proyecto');
+      return;
+    }
+    if (!formRepoUrl.trim()) {
+      showToast('Ingresa el enlace del repositorio');
       return;
     }
 
-    if (!formMembers.trim()) {
-      showToast('Por favor ingresa los integrantes de tu equipo');
-      return;
-    }
-
-    const membersList = formMembers
-      .split(',')
-      .map(m => m.trim())
-      .filter(m => m.length > 0);
-
-    const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase().includes(formCategory.toLowerCase())) || PROJECT_CATEGORIES[0];
-
-    if (editingProjectId) {
-      // Actualizar proyecto existente
-      const updated = projects.map(p => {
-        if (p.id === editingProjectId) {
-          return {
-            ...p,
-            projectName: formProjectName.trim(),
-            teamName: formTeamName.trim() || 'Mi Equipo',
-            members: membersList,
-            category: formCategory,
-            categoryColor: catObj ? catObj.color : '#06b6d4',
-            aiStack: formAiStack.trim(),
-            githubUrl: formGithubUrl.trim(),
-            demoUrl: formDemoUrl.trim(),
-            description: formDescription.trim(),
-            status: formStatus
-          };
+    try {
+      setIsSaving(true);
+      if (editingTeamId) {
+        // Edición del instructor
+        await instructorUpdateTeam(instructorPin, editingTeamId, {
+          project_name: formProjectName.trim(),
+          description: formDescription.trim(),
+          repo_url: formRepoUrl.trim(),
+          demo_url: formDemoUrl.trim(),
+          status: formStatus
+        });
+        showToast('¡Proyecto actualizado correctamente!');
+      } else {
+        // Registro del equipo con código
+        const updated = await submitProject(teamCodeInput.trim(), {
+          projectName: formProjectName.trim(),
+          description: formDescription.trim(),
+          repoUrl: formRepoUrl.trim(),
+          demoUrl: formDemoUrl.trim(),
+          status: formStatus
+        });
+        if (!updated) {
+          showToast('No se encontró el equipo. Verifica el código.');
+          return;
         }
-        return p;
-      });
-      saveProjects(updated);
-      showToast('¡Proyecto actualizado correctamente!');
-    } else {
-      // Crear nuevo proyecto
-      const newProj = {
-        id: `proj-${Date.now()}`,
-        projectName: formProjectName.trim(),
-        teamName: formTeamName.trim() || `Equipo 0${projects.length + 1}`,
-        members: membersList,
-        category: formCategory,
-        categoryColor: catObj ? catObj.color : '#06b6d4',
-        aiStack: formAiStack.trim() || 'RAG / Subagentes / MCP',
-        githubUrl: formGithubUrl.trim(),
-        demoUrl: formDemoUrl.trim(),
-        description: formDescription.trim(),
-        status: formStatus,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      saveProjects([newProj, ...projects]);
-      showToast('¡Proyecto registrado y publicado en la galería!');
-    }
-
-    setSubView('gallery');
-  };
-
-  // Eliminar proyecto
-  const handleDeleteProject = (id, name) => {
-    if (window.confirm(`¿Estás seguro de eliminar "${name}" de la galería?`)) {
-      const filtered = projects.filter(p => p.id !== id);
-      saveProjects(filtered);
-      showToast('Proyecto eliminado');
+        showToast('¡Proyecto registrado correctamente!');
+      }
+      await loadTeams();
+      resetForm();
+      setSubView('gallery');
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al guardar el proyecto');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Restablecer proyectos de muestra
-  const handleResetDemoProjects = () => {
-    saveProjects(INITIAL_PROJECTS);
-    showToast('Proyectos de ejemplo restablecidos');
+  // Eliminar equipo (instructor)
+  const handleDeleteTeam = async (id, name) => {
+    if (!window.confirm(`¿Eliminar "${name}" y su proyecto?`)) return;
+    try {
+      await deleteTeam(instructorPin, id);
+      setTeams(prev => prev.filter(t => t.id !== id));
+      showToast('Equipo eliminado');
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al eliminar');
+    }
   };
 
   // Copiar enlaces del proyecto
-  const handleCopyProjectLinks = async (proj) => {
-    let msg = `🚀 Proyecto: ${proj.projectName} (${proj.teamName})\n👥 Integrantes: ${proj.members.join(', ')}\n`;
-    if (proj.demoUrl) msg += `🌐 Demo Web: ${proj.demoUrl}\n`;
-    if (proj.githubUrl) msg += `🐙 Repositorio GitHub: ${proj.githubUrl}\n`;
+  const handleCopyProjectLinks = async (team) => {
+    let msg = `🚀 ${team.project_name || 'Proyecto'} (${team.name})\n👥 Integrantes: ${normalizeMembers(team.members).join(', ')}\n`;
+    if (team.demo_url) msg += `🌐 Demo: ${team.demo_url}\n`;
+    if (team.repo_url) msg += `🐙 Repositorio: ${team.repo_url}\n`;
     try {
       await navigator.clipboard.writeText(msg);
-      showToast('¡Enlaces del proyecto copiados al portapapeles!');
-    } catch (e) {
+      showToast('¡Enlaces copiados al portapapeles!');
+    } catch {
       showToast('Error al copiar');
     }
   };
 
-  // Lógica de la Ruleta (Herramienta Docente)
-  const shuffleArray = (array) => {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  };
-
+  // ---------- Ruleta (instructor) ----------
   const handleGenerateRouletteTeams = () => {
     const studentList = studentsInput
       .split('\n')
@@ -320,73 +313,76 @@ export const TeamsView = ({ showToast }) => {
     }
 
     setIsGenerating(true);
+    setCreatedTeams([]);
     setTimeout(() => {
-      const shuffledStudents = shuffleArray(studentList);
-      const shuffledCategories = shuffleArray(PROJECT_CATEGORIES);
-
-      const generatedTeams = [];
+      const shuffled = shuffleArray(studentList);
       const numMembers = parseInt(teamSize, 10);
-      let teamIndex = 0;
+      const generated = [];
+      let teamIndex = 1;
 
-      for (let i = 0; i < shuffledStudents.length; i += numMembers) {
-        const members = shuffledStudents.slice(i, i + numMembers);
-        const assignedCategory = shuffledCategories[teamIndex % shuffledCategories.length];
-        const teamName = TEAM_CYBER_NAMES[teamIndex % TEAM_CYBER_NAMES.length];
-
-        generatedTeams.push({
-          id: `roulette-${teamIndex + 1}`,
-          number: teamIndex + 1,
-          name: `Equipo 0${teamIndex + 1} - ${teamName}`,
-          members: members,
-          category: assignedCategory
+      for (let i = 0; i < shuffled.length; i += numMembers) {
+        generated.push({
+          id: `roulette-${teamIndex}`,
+          name: `Equipo ${String(teamIndex).padStart(2, '0')}`,
+          members: shuffled.slice(i, i + numMembers)
         });
         teamIndex++;
       }
 
-      setRouletteTeams(generatedTeams);
+      setRouletteTeams(generated);
       setIsGenerating(false);
-      showToast(`¡${generatedTeams.length} equipos formados con la ruleta!`);
+      showToast(`¡${generated.length} equipos formados!`);
     }, 600);
   };
 
-  // Traspasar equipos de la ruleta a la galería de proyectos
-  const handleImportRouletteToGallery = () => {
+  // Guardar equipos generados en la base de datos
+  const handleCreateTeamsInDb = async () => {
     if (rouletteTeams.length === 0) return;
-
-    const newProjectsFromRoulette = rouletteTeams.map(t => ({
-      id: `proj-import-${t.id}-${Date.now()}`,
-      projectName: `${t.category.name.split(':')[0]} AI Solution`,
-      teamName: t.name,
-      members: t.members,
-      category: t.category.name.split(':')[0],
-      categoryColor: t.category.color,
-      description: t.category.problemSummary,
-      githubUrl: "",
-      demoUrl: "",
-      aiStack: t.category.suggestedStack.aiTechnique,
-      status: "en_desarrollo",
-      createdAt: new Date().toISOString().split('T')[0]
-    }));
-
-    saveProjects([...newProjectsFromRoulette, ...projects]);
-    showToast(`¡${newProjectsFromRoulette.length} equipos importados a la galería! Ahora pueden añadir sus links.`);
-    setSubView('gallery');
+    try {
+      setIsCreatingTeams(true);
+      const created = await createTeams(
+        instructorPin,
+        rouletteTeams.map(t => ({ name: t.name, members: t.members }))
+      );
+      setCreatedTeams(created);
+      setRouletteTeams([]);
+      setStudentsInput('');
+      await loadTeams();
+      showToast(`¡${created.length} equipos guardados! Comparte los códigos con cada equipo.`);
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al guardar los equipos');
+    } finally {
+      setIsCreatingTeams(false);
+    }
   };
 
-  // Filtrado de proyectos
-  const filteredProjects = projects.filter(p => {
-    const matchesSearch = 
-      p.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.members.some(m => m.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToast(`Código ${code} copiado`);
+    } catch {
+      showToast('Error al copiar');
+    }
+  };
 
-    const matchesCategory = 
-      categoryFilter === 'all' || 
-      p.category.toLowerCase().includes(categoryFilter.toLowerCase());
-
-    return matchesSearch && matchesCategory;
+  // ---------- Filtrado ----------
+  const filteredTeams = teams.filter(t => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      t.name.toLowerCase().includes(q) ||
+      (t.project_name && t.project_name.toLowerCase().includes(q)) ||
+      (t.description && t.description.toLowerCase().includes(q)) ||
+      normalizeMembers(t.members).some(m => m.toLowerCase().includes(q))
+    );
   });
+
+  const statusLabel = (status) => {
+    if (status === 'publicado') return 'Publicado';
+    if (status === 'en_desarrollo') return 'En Desarrollo';
+    return 'Sin Entregar';
+  };
 
   return (
     <div className="teams-section">
@@ -396,57 +392,109 @@ export const TeamsView = ({ showToast }) => {
           <span className="section-tag">// Showcase Oficial · Hackathon & Pitch</span>
           <h2 className="section-title">Equipos y Proyectos Finales</h2>
           <p className="section-desc">
-            Espacio oficial para alumnos, jurados y docentes. Consulta los proyectos entregados, prueba las demos en vivo, revisa los repositorios en GitHub y registra el proyecto de tu equipo.
+            Consulta los proyectos entregados por cada equipo, revisa sus repositorios en GitHub y prueba las demos en vivo.
           </p>
         </div>
 
-        {/* Barra de Pestañas de Navegación de Equipos */}
+        {/* Aviso si Supabase no está configurado */}
+        {!isSupabaseConfigured && (
+          <div className="config-warning-box">
+            <AlertTriangle size={22} color="#f59e0b" />
+            <div>
+              <strong>Falta configurar Supabase.</strong>
+              <p>
+                Crea un proyecto en supabase.com, ejecuta el script <code>supabase/schema.sql</code> en el SQL Editor
+                y crea un archivo <code>.env</code> con <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> (ver <code>.env.example</code>).
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Barra de Pestañas */}
         <div className="teams-nav-bar">
           <div className="teams-nav-tabs">
-            <button 
+            <button
               className={`team-nav-tab ${subView === 'gallery' ? 'active' : ''}`}
               onClick={() => setSubView('gallery')}
             >
               <Globe size={18} />
               <span>Galería de Proyectos</span>
-              <span className="tab-counter-badge">{projects.length}</span>
+              <span className="tab-counter-badge">{teams.length}</span>
             </button>
 
-            <button 
+            <button
               className={`team-nav-tab ${subView === 'submit' ? 'active' : ''}`}
-              onClick={handleOpenCreateForm}
+              onClick={handleOpenSubmit}
             >
               <Plus size={18} />
-              <span>{editingProjectId ? 'Editando Proyecto' : 'Registrar / Entregar Proyecto'}</span>
+              <span>Registrar / Actualizar Proyecto</span>
             </button>
 
-            <button 
-              className={`team-nav-tab ${subView === 'roulette' ? 'active' : ''}`}
-              onClick={() => setSubView('roulette')}
-            >
-              <Dices size={18} />
-              <span>Ruleta & Sorteo (Docente)</span>
-            </button>
+            {isInstructor && (
+              <button
+                className={`team-nav-tab ${subView === 'roulette' ? 'active' : ''}`}
+                onClick={() => setSubView('roulette')}
+              >
+                <Dices size={18} />
+                <span>Sorteo de Equipos (Instructor)</span>
+              </button>
+            )}
           </div>
 
-          {subView === 'gallery' && (
-            <button className="btn btn-primary btn-sm" onClick={handleOpenCreateForm}>
-              <Plus size={16} />
-              <span>Subir Mi Proyecto</span>
+          {isInstructor ? (
+            <button className="btn btn-secondary btn-sm" onClick={handleInstructorLogout}>
+              <LogOut size={16} />
+              <span>Salir (Instructor)</span>
+            </button>
+          ) : (
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowPinModal(true)}>
+              <Lock size={16} />
+              <span>Acceso Instructor</span>
             </button>
           )}
         </div>
 
-        {/* VISTA 1: GALERÍA DE PROYECTOS (SHOWCASE) */}
+        {/* MODAL: PIN de instructor */}
+        {showPinModal && (
+          <div className="modal-backdrop" onClick={() => setShowPinModal(false)}>
+            <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <Lock size={22} color="#00f0ff" />
+                <h3>Acceso de Instructor</h3>
+              </div>
+              <p className="modal-desc">Ingresa el PIN de instructor para gestionar equipos y proyectos.</p>
+              <form onSubmit={handleVerifyPin}>
+                <input
+                  type="password"
+                  className="form-input-cyber"
+                  placeholder="PIN de instructor"
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  autoFocus
+                />
+                <div className="form-actions-row" style={{ marginTop: '18px' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowPinModal(false)}>
+                    <span>Cancelar</span>
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={isVerifyingPin}>
+                    {isVerifyingPin ? <Loader2 className="animate-spin" size={16} /> : <KeyRound size={16} />}
+                    <span>Entrar</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* VISTA 1: GALERÍA DE PROYECTOS */}
         {subView === 'gallery' && (
           <div className="gallery-container animate-fade-in">
-            {/* Barra de Filtros y Búsqueda */}
             <div className="gallery-filter-bar">
               <div className="search-input-wrap">
                 <Search size={18} color="#94a3b8" />
-                <input 
+                <input
                   type="text"
-                  placeholder="Buscar por proyecto, alumno, equipo o tecnología..."
+                  placeholder="Buscar por proyecto, equipo o integrante..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input-field"
@@ -455,184 +503,166 @@ export const TeamsView = ({ showToast }) => {
                   <button className="clear-search-btn" onClick={() => setSearchQuery('')}>×</button>
                 )}
               </div>
-
-              <div className="filter-dropdown-wrap">
-                <Filter size={16} color="#00f0ff" />
-                <select 
-                  value={categoryFilter} 
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="filter-select-field"
-                >
-                  <option value="all">Todas las Categorías</option>
-                  <option value="HealthTech">HealthTech</option>
-                  <option value="FinTech">FinTech</option>
-                  <option value="EdTech">EdTech</option>
-                  <option value="DevOps">DevOps</option>
-                  <option value="CyberSec">CyberSec</option>
-                  <option value="E-Commerce">E-Commerce</option>
-                </select>
-              </div>
-
-              <button className="btn btn-secondary btn-sm" onClick={handleResetDemoProjects} title="Restablecer proyectos iniciales">
-                <RotateCcw size={14} />
-                <span>Restablecer Demos</span>
-              </button>
             </div>
 
-            {/* Grid de Tarjetas de Proyectos */}
-            {filteredProjects.length > 0 ? (
+            {isLoading ? (
+              <div className="empty-projects-state">
+                <Loader2 className="animate-spin" size={40} color="#00f0ff" style={{ margin: '0 auto 16px' }} />
+                <h4>Cargando equipos...</h4>
+              </div>
+            ) : loadError ? (
+              <div className="empty-projects-state">
+                <AlertTriangle size={48} color="#f59e0b" style={{ margin: '0 auto 16px' }} />
+                <h4>{loadError === 'missing-config' ? 'Supabase no configurado' : 'No se pudieron cargar los equipos'}</h4>
+                <p>{loadError === 'missing-config' ? 'Sigue las instrucciones de arriba para conectar la base de datos.' : 'Revisa tu conexión e inténtalo de nuevo.'}</p>
+              </div>
+            ) : filteredTeams.length > 0 ? (
               <div className="projects-showcase-grid">
-                {filteredProjects.map((proj) => (
-                  <div key={proj.id} className="project-showcase-card">
-                    {/* Header de la tarjeta */}
-                    <div className="project-card-top">
-                      <div className="project-category-badge" style={{ borderColor: proj.categoryColor || '#06b6d4' }}>
-                        <span className="cat-dot" style={{ backgroundColor: proj.categoryColor || '#06b6d4' }}></span>
-                        <span>{proj.category}</span>
+                {filteredTeams.map((team) => {
+                  const members = normalizeMembers(team.members);
+                  return (
+                    <div key={team.id} className="project-showcase-card">
+                      <div className="project-card-top">
+                        <div className="project-team-name" style={{ fontWeight: 700 }}>
+                          <Users size={15} color="#00f0ff" />
+                          <span>{team.name}</span>
+                        </div>
+                        <div className="project-status-chip">
+                          {team.status === 'publicado' ? (
+                            <span className="status-badge-published">
+                              <span className="status-live-dot"></span>
+                              Publicado
+                            </span>
+                          ) : (
+                            <span className="status-badge-dev">{statusLabel(team.status)}</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="project-status-chip">
-                        {proj.status === 'publicado' ? (
-                          <span className="status-badge-published">
-                            <span className="status-live-dot"></span>
-                            Listo para Demo
-                          </span>
+                      <h3 className="project-card-title">
+                        {team.project_name || 'Proyecto por registrar'}
+                      </h3>
+
+                      <div className="project-members-wrap">
+                        <span className="members-label">Integrantes:</span>
+                        <div className="members-chips-list">
+                          {members.map((member, idx) => (
+                            <span key={idx} className="member-name-tag">{member}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {team.description ? (
+                        <p className="project-card-desc">{team.description}</p>
+                      ) : (
+                        <p className="project-card-desc" style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                          El equipo aún no ha registrado la descripción de su proyecto.
+                        </p>
+                      )}
+
+                      <div className="project-links-row">
+                        {team.demo_url ? (
+                          <a
+                            href={team.demo_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-project-link btn-demo"
+                          >
+                            <Globe size={16} />
+                            <span>Demo en Vivo</span>
+                          </a>
                         ) : (
-                          <span className="status-badge-dev">
-                            En Desarrollo
+                          <span className="btn-project-link disabled" title="El proyecto aún no está desplegado">
+                            <Globe size={16} />
+                            <span>Demo Pendiente</span>
+                          </span>
+                        )}
+
+                        {team.repo_url ? (
+                          <a
+                            href={team.repo_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-project-link btn-github"
+                          >
+                            <GithubIcon size={16} color="#ffffff" />
+                            <span>GitHub</span>
+                          </a>
+                        ) : (
+                          <span className="btn-project-link disabled" title="Repositorio aún no registrado">
+                            <GithubIcon size={16} color="#64748b" />
+                            <span>Repo Pendiente</span>
                           </span>
                         )}
                       </div>
-                    </div>
 
-                    {/* Título y Equipo */}
-                    <h3 className="project-card-title">{proj.projectName}</h3>
-                    <div className="project-team-name">
-                      <Users size={14} color="#00f0ff" />
-                      <span>{proj.teamName}</span>
-                    </div>
+                      <div className="project-card-footer">
+                        <div className="card-actions-left">
+                          {(team.repo_url || team.demo_url) && (
+                            <button
+                              className="action-icon-btn"
+                              onClick={() => handleCopyProjectLinks(team)}
+                              title="Copiar enlaces del proyecto"
+                            >
+                              <Share2 size={14} />
+                              <span>Compartir</span>
+                            </button>
+                          )}
+                        </div>
 
-                    {/* Integrantes */}
-                    <div className="project-members-wrap">
-                      <span className="members-label">Integrantes:</span>
-                      <div className="members-chips-list">
-                        {proj.members.map((member, idx) => (
-                          <span key={idx} className="member-name-tag">
-                            {member}
-                          </span>
-                        ))}
+                        {isInstructor && (
+                          <div className="card-actions-right">
+                            <button
+                              className="action-icon-btn"
+                              onClick={() => handleCopyCode(team.code)}
+                              title={`Código del equipo: ${team.code}`}
+                            >
+                              <KeyRound size={14} />
+                              <span>{team.code}</span>
+                            </button>
+                            <button
+                              className="action-icon-btn edit"
+                              onClick={() => handleOpenEditForm(team)}
+                              title="Editar proyecto"
+                            >
+                              <Edit3 size={14} />
+                              <span>Editar</span>
+                            </button>
+                            <button
+                              className="action-icon-btn delete"
+                              onClick={() => handleDeleteTeam(team.id, team.name)}
+                              title="Eliminar equipo"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    {/* Descripción */}
-                    <p className="project-card-desc">
-                      {proj.description || "Solución aumentada con inteligencia artificial construida en el curso."}
-                    </p>
-
-                    {/* Stack de IA */}
-                    {proj.aiStack && (
-                      <div className="project-ai-stack">
-                        <Sparkles size={14} color="#a855f7" />
-                        <span>{proj.aiStack}</span>
-                      </div>
-                    )}
-
-                    {/* Botones de Entrega y Enlaces Directos */}
-                    <div className="project-links-row">
-                      {proj.demoUrl ? (
-                        <a 
-                          href={proj.demoUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="btn-project-link btn-demo"
-                          title="Abrir página web creada en vivo"
-                        >
-                          <Globe size={16} />
-                          <span>Página Web (Demo)</span>
-                          <ExternalLink size={12} />
-                        </a>
-                      ) : (
-                        <span className="btn-project-link disabled" title="Página web aún no configurada">
-                          <Globe size={16} />
-                          <span>Página Web Pendiente</span>
-                        </span>
-                      )}
-
-                      {proj.githubUrl ? (
-                        <a 
-                          href={proj.githubUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="btn-project-link btn-github"
-                          title="Ver repositorio de código en GitHub"
-                        >
-                          <GithubIcon size={16} color="#ffffff" />
-                          <span>GitHub</span>
-                          <ExternalLink size={12} />
-                        </a>
-                      ) : (
-                        <span className="btn-project-link disabled" title="Repositorio de GitHub aún no configurado">
-                          <GithubIcon size={16} color="#64748b" />
-                          <span>Repo Pendiente</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Pie de tarjeta con acciones rápidas */}
-                    <div className="project-card-footer">
-                      <div className="card-actions-left">
-                        <button 
-                          className="action-icon-btn" 
-                          onClick={() => handleCopyProjectLinks(proj)}
-                          title="Copiar enlaces del proyecto"
-                        >
-                          <Share2 size={14} />
-                          <span>Compartir</span>
-                        </button>
-                      </div>
-
-                      <div className="card-actions-right">
-                        <button 
-                          className="action-icon-btn edit" 
-                          onClick={() => handleOpenEditForm(proj)}
-                          title="Editar información y enlaces del proyecto"
-                        >
-                          <Edit3 size={14} />
-                          <span>Editar</span>
-                        </button>
-                        <button 
-                          className="action-icon-btn delete" 
-                          onClick={() => handleDeleteProject(proj.id, proj.projectName)}
-                          title="Eliminar proyecto"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-projects-state">
                 <Globe size={48} color="#00f0ff" style={{ margin: '0 auto 16px' }} />
-                <h4>No se encontraron proyectos con los filtros actuales</h4>
-                <p>Prueba con otra palabra clave o registra el proyecto de tu equipo.</p>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '16px' }}>
-                  <button className="btn btn-primary" onClick={handleOpenCreateForm}>
-                    <Plus size={16} />
-                    <span>Registrar Proyecto</span>
-                  </button>
-                  <button className="btn btn-secondary" onClick={handleResetDemoProjects}>
-                    <RotateCcw size={16} />
-                    <span>Restablecer Demos</span>
-                  </button>
-                </div>
+                <h4>
+                  {searchQuery
+                    ? 'No se encontraron equipos con esa búsqueda'
+                    : 'Aún no hay equipos registrados'}
+                </h4>
+                <p>
+                  {searchQuery
+                    ? 'Prueba con otra palabra clave.'
+                    : isInstructor
+                      ? 'Usa el Sorteo de Equipos para formar los grupos.'
+                      : 'El instructor creará los equipos pronto.'}
+                </p>
               </div>
             )}
           </div>
         )}
 
-        {/* VISTA 2: FORMULARIO DE REGISTRO / ENTREGA DE PROYECTO */}
+        {/* VISTA 2: FORMULARIO DE REGISTRO DE PROYECTO */}
         {subView === 'submit' && (
           <div className="submit-project-card animate-fade-in">
             <div className="submit-form-header">
@@ -642,209 +672,180 @@ export const TeamsView = ({ showToast }) => {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '20px', color: '#ffffff' }}>
-                    {editingProjectId ? 'Editar Entrega del Proyecto' : 'Registrar Nuevo Proyecto de Equipo'}
+                    {editingTeamId ? 'Editar Proyecto (Instructor)' : 'Registrar Proyecto del Equipo'}
                   </h3>
                   <p style={{ color: '#94a3b8', fontSize: '13px' }}>
-                    Ingresa los datos de tu equipo y los enlaces a tu repositorio de GitHub y página web ya creada.
+                    {editingTeamId
+                      ? 'Actualiza la información del proyecto del equipo.'
+                      : 'Ingresa el código que tu instructor te dio y registra los datos de tu proyecto.'}
                   </p>
                 </div>
               </div>
 
-              <button className="btn btn-secondary btn-sm" onClick={() => setSubView('gallery')}>
+              <button className="btn btn-secondary btn-sm" onClick={() => { resetForm(); setSubView('gallery'); }}>
                 <span>Volver a la Galería</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveProject} className="submit-project-form">
-              <div className="form-grid-2col">
-                {/* Nombre del Proyecto */}
+            {/* Paso 1: Validar código de equipo (solo estudiantes) */}
+            {!editingTeamId && !validatedTeam && (
+              <form onSubmit={handleValidateCode} className="submit-project-form">
                 <div className="form-group">
                   <label className="form-label">
-                    <span>Nombre del Proyecto:</span>
+                    <KeyRound size={16} color="#00f0ff" />
+                    <span>Código del Equipo:</span>
                     <strong style={{ color: '#f43f5e' }}>*</strong>
                   </label>
-                  <input 
-                    type="text" 
-                    className="form-input-cyber" 
-                    placeholder="Ej. MedGuard: Triaje Clínico con RAG Local"
-                    value={formProjectName}
-                    onChange={(e) => setFormProjectName(e.target.value)}
+                  <input
+                    type="text"
+                    className="form-input-cyber team-code-input"
+                    placeholder="Ej. A1B2C3"
+                    value={teamCodeInput}
+                    onChange={(e) => setTeamCodeInput(e.target.value.toUpperCase())}
+                    maxLength={6}
                     required
                   />
-                  <span className="form-hint">Título representativo de la solución de software que construyeron.</span>
+                  <span className="form-hint">Tu instructor te compartió este código de 6 caracteres.</span>
+                </div>
+                <div className="form-actions-row">
+                  <button type="button" className="btn btn-secondary" onClick={() => setSubView('gallery')}>
+                    <span>Cancelar</span>
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={isCheckingCode}>
+                    {isCheckingCode ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
+                    <span>Validar Código</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Paso 2: Formulario del proyecto */}
+            {validatedTeam && (
+              <>
+                <div className="validated-team-banner">
+                  <Users size={18} color="#10b981" />
+                  <div>
+                    <strong>{validatedTeam.name}</strong>
+                    <span>{normalizeMembers(validatedTeam.members).join(' · ')}</span>
+                  </div>
                 </div>
 
-                {/* Nombre del Equipo */}
-                <div className="form-group">
-                  <label className="form-label">
-                    <span>Nombre del Equipo:</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    className="form-input-cyber" 
-                    placeholder="Ej. Equipo 01 - CyberCore"
-                    value={formTeamName}
-                    onChange={(e) => setFormTeamName(e.target.value)}
-                  />
-                  <span className="form-hint">Nombre de tu grupo de trabajo para la presentación.</span>
-                </div>
-              </div>
-
-              {/* Integrantes */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Integrantes del Equipo (separados por coma):</span>
-                  <strong style={{ color: '#f43f5e' }}>*</strong>
-                </label>
-                <input 
-                  type="text" 
-                  className="form-input-cyber" 
-                  placeholder="Ej. Carlos Mendoza, Sofía Valenzuela, Diego Navarro"
-                  value={formMembers}
-                  onChange={(e) => setFormMembers(e.target.value)}
-                  required
-                />
-                <span className="form-hint">Escribe los nombres de los integrantes que colaboraron en el proyecto.</span>
-              </div>
-
-              <div className="form-grid-2col">
-                {/* Categoría */}
-                <div className="form-group">
-                  <label className="form-label">
-                    <span>Categoría / Industria del Reto:</span>
-                  </label>
-                  <select 
-                    className="form-input-cyber" 
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                  >
-                    <option value="HealthTech">HealthTech (Salud & Diagnóstico)</option>
-                    <option value="FinTech">FinTech (Finanzas & Auditoría)</option>
-                    <option value="EdTech">EdTech (Educación & Mentoría)</option>
-                    <option value="DevOps">DevOps (Logs & Resiliencia)</option>
-                    <option value="CyberSec">CyberSec (Seguridad & Cumplimiento)</option>
-                    <option value="E-Commerce">E-Commerce & Recomendaciones</option>
-                    <option value="SmartCities">SmartCities & Movilidad</option>
-                    <option value="Logistics">Logística & Cadena de Suministro</option>
-                  </select>
-                </div>
-
-                {/* Stack de IA */}
-                <div className="form-group">
-                  <label className="form-label">
-                    <span>Técnica / Stack de IA Clave:</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    className="form-input-cyber" 
-                    placeholder="Ej. RAG Local (JSON) + MCP SQLite + Subagentes"
-                    value={formAiStack}
-                    onChange={(e) => setFormAiStack(e.target.value)}
-                  />
-                  <span className="form-hint">¿Qué técnica aprendida en el curso utilizaron?</span>
-                </div>
-              </div>
-
-              {/* Enlace al Repositorio de GitHub */}
-              <div className="form-group">
-                <label className="form-label">
-                  <GithubIcon size={16} color="#00f0ff" />
-                  <span>Enlace al Repositorio de GitHub:</span>
-                </label>
-                <input 
-                  type="url" 
-                  className="form-input-cyber" 
-                  placeholder="https://github.com/tu-usuario/tu-proyecto"
-                  value={formGithubUrl}
-                  onChange={(e) => setFormGithubUrl(e.target.value)}
-                />
-                <span className="form-hint">URL pública de GitHub para que jurados y compañeros puedan revisar el código fuente.</span>
-              </div>
-
-              {/* Enlace a la Página Web / Demo en Vivo */}
-              <div className="form-group">
-                <label className="form-label">
-                  <Globe size={16} color="#10b981" />
-                  <span>Enlace de la Página Web ya Creada (Demo en Vivo):</span>
-                </label>
-                <input 
-                  type="url" 
-                  className="form-input-cyber" 
-                  placeholder="https://tu-proyecto.vercel.app o GitHub Pages"
-                  value={formDemoUrl}
-                  onChange={(e) => setFormDemoUrl(e.target.value)}
-                />
-                <span className="form-hint">Página web desplegada al final del curso (en Vercel, Netlify, Render o GitHub Pages).</span>
-              </div>
-
-              {/* Breve Descripción / Pitch */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Descripción del Proyecto & Problema Resuelto:</span>
-                </label>
-                <textarea 
-                  className="form-input-cyber textarea"
-                  rows={3}
-                  placeholder="Describe en 2 o 3 oraciones qué problema resuelve tu proyecto y cómo la IA aporta valor real..."
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                />
-              </div>
-
-              {/* Estado de Entrega */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Estado de la Entrega:</span>
-                </label>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#ffffff' }}>
-                    <input 
-                      type="radio" 
-                      name="status" 
-                      value="publicado" 
-                      checked={formStatus === 'publicado'}
-                      onChange={() => setFormStatus('publicado')}
+                <form onSubmit={handleSaveProject} className="submit-project-form">
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Nombre del Proyecto:</span>
+                      <strong style={{ color: '#f43f5e' }}>*</strong>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input-cyber"
+                      placeholder="Ej. EcoRuta: Optimizador inteligente de rutas"
+                      value={formProjectName}
+                      onChange={(e) => setFormProjectName(e.target.value)}
+                      required
                     />
-                    <span>🟢 Listo para Demostración (Publicado)</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#cbd5e1' }}>
-                    <input 
-                      type="radio" 
-                      name="status" 
-                      value="en_desarrollo" 
-                      checked={formStatus === 'en_desarrollo'}
-                      onChange={() => setFormStatus('en_desarrollo')}
-                    />
-                    <span>🟡 En Desarrollo (Borrador)</span>
-                  </label>
-                </div>
-              </div>
+                  </div>
 
-              {/* Botones de acción */}
-              <div className="form-actions-row">
-                <button type="button" className="btn btn-secondary" onClick={() => setSubView('gallery')}>
-                  <span>Cancelar</span>
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <CheckCircle2 size={16} />
-                  <span>{editingProjectId ? 'Guardar Cambios' : 'Publicar Proyecto en la Galería'}</span>
-                </button>
-              </div>
-            </form>
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Descripción del Proyecto:</span>
+                      <strong style={{ color: '#f43f5e' }}>*</strong>
+                    </label>
+                    <textarea
+                      className="form-input-cyber textarea"
+                      rows={4}
+                      placeholder="Describe qué problema resuelve tu proyecto y cómo la IA aporta valor..."
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      <GithubIcon size={16} color="#00f0ff" />
+                      <span>Enlace del Repositorio:</span>
+                      <strong style={{ color: '#f43f5e' }}>*</strong>
+                    </label>
+                    <input
+                      type="url"
+                      className="form-input-cyber"
+                      placeholder="https://github.com/tu-equipo/tu-proyecto"
+                      value={formRepoUrl}
+                      onChange={(e) => setFormRepoUrl(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      <Globe size={16} color="#10b981" />
+                      <span>Enlace del Proyecto Desplegado (opcional):</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="form-input-cyber"
+                      placeholder="https://tu-proyecto.vercel.app (déjalo vacío si aún no lo despliegas)"
+                      value={formDemoUrl}
+                      onChange={(e) => setFormDemoUrl(e.target.value)}
+                    />
+                    <span className="form-hint">Opcional: si no alcanzan a desplegarlo, pueden dejar este campo vacío.</span>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Estado de la Entrega:</span>
+                    </label>
+                    <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#ffffff' }}>
+                        <input
+                          type="radio"
+                          name="status"
+                          value="publicado"
+                          checked={formStatus === 'publicado'}
+                          onChange={() => setFormStatus('publicado')}
+                        />
+                        <span>🟢 Publicado (listo para mostrar)</span>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#cbd5e1' }}>
+                        <input
+                          type="radio"
+                          name="status"
+                          value="en_desarrollo"
+                          checked={formStatus === 'en_desarrollo'}
+                          onChange={() => setFormStatus('en_desarrollo')}
+                        />
+                        <span>🟡 En Desarrollo</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="form-actions-row">
+                    <button type="button" className="btn btn-secondary" onClick={() => { resetForm(); setSubView('gallery'); }}>
+                      <span>Cancelar</span>
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                      {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+                      <span>{editingTeamId ? 'Guardar Cambios' : 'Registrar Proyecto'}</span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         )}
 
-        {/* VISTA 3: RULETA Y SORTEO DE EQUIPOS (HERRAMIENTA DOCENTE) */}
-        {subView === 'roulette' && (
+        {/* VISTA 3: SORTEO DE EQUIPOS (SOLO INSTRUCTOR) */}
+        {subView === 'roulette' && isInstructor && (
           <div className="roulette-tool-container animate-fade-in">
             <div className="roulette-intro-box">
               <Dices size={28} color="#00f0ff" />
               <div>
                 <h4 style={{ color: '#ffffff', fontSize: '18px', marginBottom: '4px' }}>
-                  Herramienta Docente: Ruleta de Equipos y Retos
+                  Herramienta del Instructor: Sorteo de Equipos
                 </h4>
                 <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                  Utiliza este panel si deseas formar grupos aleatorios con los alumnos presentes y asignarles retos del mundo real. Una vez generados, puedes exportarlos a la galería de proyectos con un solo clic.
+                  Ingresa la lista de estudiantes, forma los equipos aleatoriamente y guárdalos. Se generará un código único por equipo para que registren su proyecto. Las categorías y problemas son libres: cada equipo elige su tema.
                 </p>
               </div>
             </div>
@@ -856,22 +857,14 @@ export const TeamsView = ({ showToast }) => {
                     <label style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff' }}>
                       Lista de Estudiantes ({studentsInput.split('\n').filter(s => s.trim().length > 0).length} registrados)
                     </label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => {
-                        setStudentsInput(DEMO_STUDENTS.join('\n'));
-                        showToast('16 alumnos demo cargados');
-                      }}>
-                        <span>Cargar Alumnos Demo</span>
-                      </button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => setStudentsInput('')}>
-                        <span>Limpiar</span>
-                      </button>
-                    </div>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setStudentsInput('')}>
+                      <span>Limpiar</span>
+                    </button>
                   </div>
 
                   <textarea
                     className="textarea-cyber"
-                    placeholder="Pega o escribe los nombres de los estudiantes (uno por línea)..."
+                    placeholder="Escribe o pega los nombres de los estudiantes (uno por línea)..."
                     value={studentsInput}
                     onChange={(e) => setStudentsInput(e.target.value)}
                   />
@@ -908,13 +901,13 @@ export const TeamsView = ({ showToast }) => {
                   >
                     {isGenerating ? (
                       <>
-                        <Dices className="animate-spin" size={20} />
-                        <span>Sorteando Equipos y Retos...</span>
+                        <Loader2 className="animate-spin" size={20} />
+                        <span>Sorteando Equipos...</span>
                       </>
                     ) : (
                       <>
                         <Shuffle size={20} />
-                        <span>Sortear Equipos & Asignar Desafíos</span>
+                        <span>Sortear Equipos</span>
                       </>
                     )}
                   </button>
@@ -922,23 +915,24 @@ export const TeamsView = ({ showToast }) => {
               </div>
             </div>
 
-            {/* Resultados de la Ruleta */}
+            {/* Vista previa del sorteo */}
             {rouletteTeams.length > 0 && (
               <div style={{ marginTop: '36px' }}>
                 <div className="teams-results-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Users size={22} color="#06b6d4" />
                     <h3 style={{ fontSize: '22px', color: '#ffffff' }}>
-                      {rouletteTeams.length} Equipos Formados con la Ruleta
+                      {rouletteTeams.length} Equipos Formados
                     </h3>
                   </div>
 
-                  <button 
+                  <button
                     className="btn btn-primary btn-sm"
-                    onClick={handleImportRouletteToGallery}
+                    onClick={handleCreateTeamsInDb}
+                    disabled={isCreatingTeams}
                   >
-                    <Send size={14} />
-                    <span>Pasar Equipos a la Galería de Proyectos</span>
+                    {isCreatingTeams ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
+                    <span>Guardar Equipos y Generar Códigos</span>
                   </button>
                 </div>
 
@@ -960,17 +954,47 @@ export const TeamsView = ({ showToast }) => {
                           </span>
                         ))}
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                      <div className="category-assigned-box">
-                        <div className="category-name-badge">
-                          <span>{team.category.name}</span>
-                        </div>
-                        <p className="category-problem-text">
-                          <strong>Problema:</strong> {team.category.problemSummary}
-                        </p>
-                        <div className="category-technique-pill">
-                          ⚡ {team.category.suggestedStack.aiTechnique}
-                        </div>
+            {/* Códigos generados tras guardar */}
+            {createdTeams.length > 0 && (
+              <div style={{ marginTop: '36px' }}>
+                <div className="teams-results-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <CheckCircle2 size={22} color="#10b981" />
+                    <h3 style={{ fontSize: '22px', color: '#ffffff' }}>
+                      Equipos Guardados — Comparte estos Códigos
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="teams-cards-grid">
+                  {createdTeams.map((team) => (
+                    <div key={team.id} className="team-card">
+                      <div className="team-header">
+                        <span className="team-number-tag">{team.name}</span>
+                        <button
+                          className="team-code-badge"
+                          onClick={() => handleCopyCode(team.code)}
+                          title="Copiar código"
+                        >
+                          <KeyRound size={13} />
+                          <span>{team.code}</span>
+                          <Copy size={12} />
+                        </button>
+                      </div>
+
+                      <div className="members-chips">
+                        {normalizeMembers(team.members).map((member, mIdx) => (
+                          <span key={mIdx} className="member-chip">
+                            <Users size={12} color="#06b6d4" />
+                            <span>{member}</span>
+                          </span>
+                        ))}
                       </div>
                     </div>
                   ))}

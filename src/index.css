@@ -2380,3 +2380,155 @@ code, pre {
 }
 
 
+
+/* ---------- Nuevos estilos: módulo de equipos ---------- */
+
+/* Aviso de configuración de Supabase */
+.config-warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.config-warning-box strong {
+  color: #fbbf24;
+}
+
+.config-warning-box p {
+  margin: 4px 0 0;
+}
+
+.config-warning-box code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* Modal de PIN del instructor */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--bg-card, #0f172a);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: var(--radius-lg, 16px);
+  padding: 28px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.modal-header h3 {
+  color: #ffffff;
+  font-size: 18px;
+  margin: 0;
+}
+
+.modal-desc {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Banner de equipo validado */
+.validated-team-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 22px;
+}
+
+.validated-team-banner > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.validated-team-banner strong {
+  color: #10b981;
+  font-size: 15px;
+}
+
+.validated-team-banner span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Input de código de equipo */
+.team-code-input {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  text-align: center;
+  max-width: 280px;
+}
+
+/* Badge del código de equipo (instructor) */
+.team-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: #00f0ff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.team-code-badge:hover {
+  background: rgba(0, 240, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Spinner */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease both;
+}
