@@ -110,7 +110,7 @@ export const DailyContentView = ({ activeDay, setActiveDay, showToast }) => {
             <span className="day-tag">LECCIÓN DÍA {dayData.dayNumber} // INTENSIVO</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>
               <Clock size={15} color="#06b6d4" />
-              <span>09:00 - 15:00 hrs (6 Horas)</span>
+              <span>09:00 - 14:00 hrs (5 Horas)</span>
             </div>
           </div>
 

@@ -67,14 +67,14 @@ export const COURSE_DAYS = [
         description: "El control de versiones como salvaguarda ante cambios rápidos de la IA. Configuración de credenciales de Git, creación de repositorios en GitHub, integración en VS Code y activación del agente."
       },
       {
-        time: "12:15 - 13:15",
-        duration: "1 hr",
+        time: "12:15 - 13:00",
+        duration: "45 min",
         topic: "Estructura y Diseño de Prompts para Desarrollo de Software",
         description: "Diseño de prompts de alta precisión: Rol técnico, Contexto de workspace, Tarea quirúrgica y Restricciones estrictas (RCTR). Ejemplos aplicados a generación de interfaces, logos SVG y componentes."
       },
       {
-        time: "13:15 - 15:00",
-        duration: "1 hr 45 min",
+        time: "13:00 - 14:00",
+        duration: "1 hr",
         topic: "Ejercicios Prácticos: Construcción de un Proyecto con un Agente de Código",
         description: "Taller guiado: creación de los recursos esenciales de un proyecto web mediante prompts (identidad/logo SVG, componentes reutilizables y landing page) y subida a tu primer repositorio en GitHub."
       }
@@ -170,8 +170,8 @@ export const COURSE_DAYS = [
         description: "¿Qué es un subagente y dónde 'vive'? Sus 3 piezas: identidad (system prompt), herramientas (tools) y memoria aislada. Configuración práctica en .claude/agents/ con archivos Markdown: CLAUDE.md, name, description, tools y cuerpo del prompt."
       },
       {
-        time: "12:45 - 15:00",
-        duration: "2 hrs 15 min",
+        time: "12:45 - 14:00",
+        duration: "1 hr 15 min",
         topic: "Delegación, Especialización y Subagentes con Flujo TDD",
         description: "Carrera de relevos de 4 pasos y ciclo TDD en vivo de rojo a verde (@tdd-tester, @backend-coder, @revisor). Triangulación con múltiples asserts para evitar las trampas de la IA (Reward Hacking), orquestación en un proyecto real y demo en terminal con > /agents."
       }
@@ -234,38 +234,38 @@ export const COURSE_DAYS = [
     pedagogyPillar: "El agente deja de estar aislado: mediante MCPs prehechos instalados en tu editor, el agente se conecta de forma estandarizada a navegadores, repositorios y bases de datos, y todo lo aprendido en el curso converge en un proyecto final de tema libre desarrollado en equipo.",
     schedule: [
       {
-        time: "09:00 - 10:00",
-        duration: "1 hr",
+        time: "09:00 - 09:45",
+        duration: "45 min",
         topic: "¿Qué es el Model Context Protocol (MCP)? Definición y 3 Capacidades Principales",
         description: "Estándar abierto creado para conectar aplicaciones de inteligencia artificial con fuentes de datos y herramientas externas de forma segura y estandarizada. Sus 3 capacidades: Tools (funciones que puede necesitar el LLM), Recursos (datos o archivos contextuales) y Prompts (plantillas predefinidas)."
       },
       {
-        time: "10:00 - 11:00",
+        time: "09:45 - 10:45",
         duration: "1 hr",
         topic: "Arquitectura Cliente-Servidor, Ejemplos de MCP e Instalación Práctica",
         description: "Los 3 componentes: Host (entorno de IA del usuario), Cliente (intermediario que gestiona solicitudes y sesiones) y Servidor (programa independiente conectado a fuentes de datos). Ejemplos en vivo: Playwright MCP (abrir e interactuar con sitios web y probar web apps), GitHub MCP (analizar repositorios y automatizar flujos) y Supabase MCP (gestión de bases de datos con IA, crear y desplegar la BD automáticamente). Instalación paso a paso de un MCP."
       },
       {
-        time: "11:00 - 11:30",
+        time: "10:45 - 11:15",
         duration: "30 min",
         topic: "Receso / Coffee Break",
         description: "Pausa para café y preparación del tablero para la dinámica de formación de equipos del proyecto final."
       },
       {
-        time: "11:30 - 12:15",
-        duration: "45 min",
+        time: "11:15 - 11:45",
+        duration: "30 min",
         topic: "Kickoff del Proyecto Final: Descripción y Formación de Equipos",
         description: "En equipos desarrollarán un proyecto en el que hagan uso de todo lo aprendido en el curso (agentes de código, prompts, RAG, subagentes con TDD y MCPs). El tema es libre. Para la entrega deberán subir el enlace de su repositorio de GitHub y de su sitio web desplegado."
       },
       {
-        time: "12:15 - 14:30",
-        duration: "2 hrs 15 min",
+        time: "11:45 - 13:15",
+        duration: "1 hr 30 min",
         topic: "Desarrollo del Proyecto Final por Equipos",
         description: "Trabajo en equipo en el workspace para construir la solución aumentada con IA aplicando las técnicas del curso. Mentoría técnica y acompañamiento continuo de los docentes."
       },
       {
-        time: "14:30 - 15:00",
-        duration: "30 min",
+        time: "13:15 - 14:00",
+        duration: "45 min",
         topic: "Entrega y Presentación de Proyectos",
         description: "Cada equipo entrega el enlace de su repositorio de GitHub y de su sitio web desplegado, y presenta su proyecto final ante el grupo. Evaluación y conclusiones del curso."
       }
